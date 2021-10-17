@@ -1,0 +1,3 @@
+class {:autocontracts} Conjunto{
+    
+}
