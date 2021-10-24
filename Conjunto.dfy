@@ -3,11 +3,11 @@ function toset(s: seq<int>): set<int>
     set x | x in s
 }
 
-function method tosetMethod(arr: array<int>): set<int>
-reads arr
+method tosetMethod(arr: array<int>) returns (s: set<int>)
+ensures arr == old(arr)
 {
-    var s := arr[..];
-    set x | x in s
+    var sequence := arr[..];
+    s := set x | x in sequence;
 }
 
 class {:autocontracts} ConjuntoInt {
@@ -159,57 +159,63 @@ class {:autocontracts} ConjuntoInt {
     ensures set2.conteudo == old(set2.conteudo)
     ensures toset(c.conteudo) == toset(conteudo) + toset(set2.conteudo)
     ensures forall e :: (e in conteudo) || (e in set2.conteudo) <==> (e in c.conteudo)
-    //{
-    //    c := new ConjuntoInt();
-    //    var conj1 := (set x | x in tosetMethod(a));
-    //    var conj2 := (set x | x in tosetMethod(set2.a));
-    //    var conjResp := conj1 + conj2;
-    //    while conjResp != {}
-    //    decreases |conjResp|
-    //    {
-    //      var i: int :| i in conjResp;
-    //      conjResp := conjResp - {i};
-    //      c.adicionar(i);
-    //    }
-    //}
+    {
+        c := new ConjuntoInt();
+        var set1 := tosetMethod(a);
+        var set2 := tosetMethod(set2.a);
+        var conj1 := (set x | x in set1);
+        var conj2 := (set x | x in set2);
+        var conjResp := conj1 + conj2;
+        while conjResp != {}
+        decreases |conjResp|
+        {
+          var i: int :| i in conjResp;
+          conjResp := conjResp - {i};
+          var r := c.adicionar(i);
+        }
+    }
 
     method intersec(set2: ConjuntoInt) returns (c: ConjuntoInt)
     ensures conteudo == old(conteudo)
     ensures set2.conteudo == old(set2.conteudo)
     ensures toset(c.conteudo) == toset(conteudo) * toset(set2.conteudo)
     ensures forall e :: (e in conteudo) && (e in set2.conteudo) <==> (e in c.conteudo)
-    //{
-    //    c := new ConjuntoInt();
-    //    var conj1 := (set x | x in tosetMethod(a));
-    //    var conj2 := (set x | x in tosetMethod(set2.a));
-    //    var conjResp := conj1 * conj2;
-    //    while conjResp != {}
-    //    decreases |conjResp|
-    //    {
-    //      var i: int :| i in conjResp;
-    //      conjResp := conjResp - {i};
-    //      c.adicionar(i);
-    //    }
-    //}
+    {
+        c := new ConjuntoInt();
+        var set1 := tosetMethod(a);
+        var set2 := tosetMethod(set2.a);
+        var conj1 := (set x | x in set1);
+        var conj2 := (set x | x in set2);
+        var conjResp := conj1 * conj2;
+        while conjResp != {}
+        decreases |conjResp|
+        {
+          var i: int :| i in conjResp;
+          conjResp := conjResp - {i};
+          var r := c.adicionar(i);
+        }
+    }
 
     method minus(set2: ConjuntoInt) returns (c: ConjuntoInt)
     ensures conteudo == old(conteudo)
     ensures set2.conteudo == old(set2.conteudo)
     ensures toset(c.conteudo) == toset(conteudo) - toset(set2.conteudo)
     ensures forall e :: (e in conteudo) && (e !in set2.conteudo) <==> (e in c.conteudo)
-    //{
-    //    c := new ConjuntoInt();
-    //    var conj1 := (set x | x in tosetMethod(a));
-    //    var conj2 := (set x | x in tosetMethod(set2.a));
-    //    var conjResp := conj1 - conj2;
-    //    while conjResp != {}
-    //    decreases |conjResp|
-    //    {
-    //      var i: int :| i in conjResp;
-    //      conjResp := conjResp - {i};
-    //      c.adicionar(i);
-    //    }
-    //}
+    {
+        c := new ConjuntoInt();
+        var set1 := tosetMethod(a);
+        var set2 := tosetMethod(set2.a);
+        var conj1 := (set x | x in set1);
+        var conj2 := (set x | x in set2);
+        var conjResp := conj1 - conj2;
+        while conjResp != {}
+        decreases |conjResp|
+        {
+          var i: int :| i in conjResp;
+          conjResp := conjResp - {i};
+          var r := c.adicionar(i);
+        }
+    }
 }
 
 method Main(){
