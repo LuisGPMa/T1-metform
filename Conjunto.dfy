@@ -5,6 +5,7 @@ function toset(s: seq<int>): set<int>
 
 method tosetMethod(arr: array<int>) returns (s: set<int>)
 ensures arr == old(arr)
+ensures arr.Length == old(arr.Length)
 {
     var sequence := arr[..];
     s := set x | x in sequence;
@@ -85,6 +86,7 @@ class {:autocontracts} ConjuntoInt {
 
     method buscaNoArray(e: int) returns (pos: int)
     ensures conteudo == old(conteudo)
+    ensures toset(conteudo) == toset(old(conteudo))
     ensures |conteudo| == |old(conteudo)|
     ensures (e !in toset(conteudo)) <==> pos == -1    
     ensures (e in toset(conteudo)) <==> 0 <= pos < tamanho && conteudo[pos] == e
@@ -108,34 +110,32 @@ class {:autocontracts} ConjuntoInt {
     ensures r <==> e in toset(old(conteudo))
     ensures r  ==> toset(conteudo) == toset(old(conteudo)) - {e} && |conteudo| == |old(conteudo)| - 1
     ensures !r ==> toset(conteudo) == toset(old(conteudo)) && |conteudo| == |old(conteudo)|
-    {
-        var p := pertence(e);
-        if !p
+    {   
+        var pos := buscaNoArray(e); 
+        if pos == -1 
         {
             r := false;
         }
         else
         {
             assert e in conteudo;
-            var pos := buscaNoArray(e);
+            a[pos] := a[tamanho-1];
+            conteudo := a[..tamanho-1];
             assert 0 <= pos < tamanho;
-            assert |conteudo| == tamanho;
-            tamanho := tamanho-1;
-            a[pos] := a[tamanho];
-            conteudo := a[..tamanho];
-            assert pos < old(|conteudo|);
             assert conteudo[..pos] == old(conteudo)[..pos];
-            assert conteudo[pos] == old(conteudo)[|old(conteudo)|-1];
-            if pos < old(tamanho)-1{
-                assert 0 <= pos < |old(conteudo)|;
+            if pos < tamanho-1{
+                assert 0 <= pos < tamanho-1;
                 assert |old(conteudo)| == old(tamanho);
                 assert conteudo[..pos] == old(conteudo)[..pos];
+                assert conteudo[pos] == old(conteudo)[tamanho-1];
+                assert conteudo[pos+1..] == conteudo[pos+1..];
                 //assert conteudo == old(conteudo)[..pos] + [old(conteudo)[old(tamanho)-1]] + old(conteudo)[pos+1..];
             }
-            else if pos == old(tamanho)-1{
-                assert pos == |old(conteudo)|-1;
-                //assert conteudo == old(conteudo)[..pos] + [old(conteudo)[old(tamanho)-1]];
+            else if pos == tamanho-1{
+                assert conteudo[..pos] == old(conteudo)[..pos];
+                //assert conteudo == old(conteudo)[..pos] + [a[tamanho-1]];
             }
+            tamanho := tamanho - 1;
             r := true;
         }
     }
@@ -155,10 +155,12 @@ class {:autocontracts} ConjuntoInt {
     }
 
     method union(set2: ConjuntoInt) returns (c: ConjuntoInt)
+    requires set2.Valid()
     ensures conteudo == old(conteudo)
     ensures set2.conteudo == old(set2.conteudo)
     ensures toset(c.conteudo) == toset(conteudo) + toset(set2.conteudo)
     ensures forall e :: (e in conteudo) || (e in set2.conteudo) <==> (e in c.conteudo)
+    ensures set2.Valid()
     {
         c := new ConjuntoInt();
         var set1 := tosetMethod(a);
@@ -172,14 +174,17 @@ class {:autocontracts} ConjuntoInt {
           var i: int :| i in conjResp;
           conjResp := conjResp - {i};
           var r := c.adicionar(i);
+          assert conteudo == old(conteudo);
         }
     }
 
     method intersec(set2: ConjuntoInt) returns (c: ConjuntoInt)
+    requires set2.Valid()
     ensures conteudo == old(conteudo)
     ensures set2.conteudo == old(set2.conteudo)
     ensures toset(c.conteudo) == toset(conteudo) * toset(set2.conteudo)
     ensures forall e :: (e in conteudo) && (e in set2.conteudo) <==> (e in c.conteudo)
+    ensures set2.Valid()
     {
         c := new ConjuntoInt();
         var set1 := tosetMethod(a);
@@ -197,10 +202,12 @@ class {:autocontracts} ConjuntoInt {
     }
 
     method minus(set2: ConjuntoInt) returns (c: ConjuntoInt)
+    requires set2.Valid()
     ensures conteudo == old(conteudo)
     ensures set2.conteudo == old(set2.conteudo)
     ensures toset(c.conteudo) == toset(conteudo) - toset(set2.conteudo)
     ensures forall e :: (e in conteudo) && (e !in set2.conteudo) <==> (e in c.conteudo)
+    ensures set2.Valid()
     {
         c := new ConjuntoInt();
         var set1 := tosetMethod(a);
